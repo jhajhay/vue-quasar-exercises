@@ -1,30 +1,20 @@
 const routes = [
   {
     path: '/',
-    redirect: {
-      name: "my-tasks",
+    redirect:{
+      name: 'home'
     },
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { 
-        path: 'my-tasks', 
-        name: "my-tasks",
-        component: () => import('pages/MyTasks.vue') 
-      },
-      { 
-        path: 'finished-tasks', 
-        name: "finished-tasks",
-        component: () => import('pages/FinishedTasks.vue') 
-      },
-      { 
-        path: 'deleted-tasks', 
-        name: "deleted-tasks",
-        component: () => import('pages/DeletedTasks.vue') 
-      },
-      { 
-        path: 'axios', 
-        name: "axios",
+        path: 'home',
+        name: 'home', 
         component: () => import('pages/IndexPage.vue') 
+      },
+      { 
+        path: 'form',
+        name: 'form', 
+        component: () => import('pages/FormPage.vue') 
       },
     ]
   },

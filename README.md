@@ -1,6 +1,6 @@
-# Quasar App (todo-project)
+# quasar-UMS (quasar-ums)
 
-A Quasar Project
+User management system
 
 ## Install the dependencies
 ```bash

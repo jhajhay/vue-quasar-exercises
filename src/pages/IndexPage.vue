@@ -1,143 +1,154 @@
 <template>
-  <q-form @submit="!selectedRow.id ? addTodo() : updateTodo()" class="q-ma-md">
-    <q-input v-model="form.title" />
-    <q-btn
-      type="submit"
-      :label="!selectedRow.id ? 'Submit' : 'Update'"
-      color="primary"
-    />
-    <q-btn
-		  :loading="deleteBtnLoadingState"
-      v-if="selectedRow.id"
-      @click="deleteTodo()"
-      class="q-ml-md"
-      label="Delete"
-      color="negative"
-    />
-  </q-form>
   <q-page class="q-ma-xl">
     <q-table
-      title="Todos"
+      title="List of users"
       :rows="rows"
       :columns="columns"
       row-key="name"
-      @row-click="onRowClick"
-    />
+    >
+      <template v-slot:header="props">
+        <q-tr :props="props">
+          <q-th
+            v-for="col in props.cols"
+            :key="col.name"
+            :props="props"
+          >
+            {{ col.label }}
+          </q-th>
+          <q-th>Action</q-th>
+        </q-tr>
+      </template>
+
+      <template v-slot:body="props">
+        <q-tr :props="props">
+          <q-td
+            v-for="col in props.cols"
+            :key="col.name"
+            :props="props"
+          >
+            {{ col.value }}
+          </q-td>
+          <q-td auto-width>
+            <q-btn size="sm" color="primary" round dense @click="handleUpdate(props.row)" icon="edit" style="padding: 8px; margin: 8px;" />
+            <q-btn size="sm" color="negative" round dense @click="handleDelete(props.row)" icon="delete" style="padding: 8px; margin: 8px;" />
+          </q-td>
+        </q-tr>
+      </template>
+    </q-table>
   </q-page>
 </template>
 
 <script>
   import axios from "axios";
   import { ref } from "vue";
+  import {users as rows, selectedUser} from "../composable/Users";
+  import { useRouter } from "vue-router";
+  import { useQuasar } from 'quasar';
+
   export default {
     setup() {
-      let rows = ref([]);
+      selectedUser.value = null;
+      const router = useRouter();
+      const $q = useQuasar()
       let columns = ref([
         {
-          name: "title",
-          label: "Title",
+          name: "name",
+          label: "Name",
           align: "left",
-          field: "title",
+          field: "name",
+          sortable: true,
         },
         {
-          name: "completed",
-          label: "Completed",
+          name: "username",
+          label: "Username",
           align: "left",
-          field: "completed",
+          field: "username",
+        },
+        {
+          name: "email",
+          label: "Email",
+          align: "left",
+          field: "email",
+        },
+        {
+          name: "address",
+          label: "Address",
+          align: "left",
+          field: row => `${row.address.street}, ${row.address.suite}, ${row.address.city} ${row.address.zipcode ? `(${row.address.zipcode})` : ''}`,
+        },
+        {
+          name: "phone",
+          label: "Contact Number",
+          align: "left",
+          field: "phone",
+        },
+        {
+          name: "website",
+          label: "Website",
+          align: "left",
+          field: "website",
+        },
+        {
+          name: "company",
+          label: "Company",
+          align: "left",
+          field: row => row.company.name,
         },
       ]);
 
-      const getTodos = () => {
+      const getUsers = () => {
         axios
-          .get("https://jsonplaceholder.typicode.com/todos")
+          .get("https://jsonplaceholder.typicode.com/users")
           .then((response) => {
             rows.value = response.data;
           });
       };
-      getTodos();
-
-
-      let form = ref({
-        userId: 1,
-        title: null,
-        completed: false,
-      });
       
-      let btnLoadingState = ref(false);
-      const addTodo = () => {
-        btnLoadingState.value = true;
-        axios
-          .post("https://jsonplaceholder.typicode.com/todos", form.value)
-          .then((response) => {
-            if (response.status === 201) {
-              rows.value.unshift(response.data);
-              form.value.title = null;
-            }
-            btnLoadingState.value = false;
-          });
-      };
+      if(rows.value.length === 0){
+        getUsers();
+      }
 
-      let selectedRow = ref({});
-      const onRowClick = (evt, row) => {
-        selectedRow.value = row;
-        form.value.title = row.title;
-      };
+      const handleUpdate = (row)=>{
+        let user = {...row};
+        if(user.middleName){
+          let name = user.name.split(`${' '+user.middleName.charAt(0).toUpperCase()+'. '}`);
+          user.name = {
+            firstName: name[0],
+            lastName: name[1]
+          }
+        }else{
+          let name = user.name.split(' ');
+          user.name = {
+            firstName: name.slice(0, name.length - 1).join(' '),
+            lastName: name[name.length - 1]
+          }
+          user.middleName = null;
+        }
+        
+        selectedUser.value = user;
+        router.push({ path: 'form' })
+      }
 
-
-      const updateTodo = () => {
-        btnLoadingState.value = true;
-        axios
-          .put(
-            `https://jsonplaceholder.typicode.com/todos/${selectedRow.value.id}`,
-            {
-              title: form.value.title,
-            }
-          )
-          .then((response) => {
-            if (response.status === 200) {
-              let index = rows.value.findIndex(
-                (row) => row.id === selectedRow.value.id
-              );
-              rows.value[index].title = response.data.title;
-              form.value.title = null;
-              selectedRow.value = {};
-            }
-            btnLoadingState.value = false;
-          });
-      };
-
-      let deleteBtnLoadingState = ref(false);
-      const deleteTodo = () => {
-        deleteBtnLoadingState.value = true;
-        axios
-          .delete(
-            `https://jsonplaceholder.typicode.com/todos/${selectedRow.value.id}`
-          )
+      const handleDelete = (row)=>{
+        $q.dialog({
+          title: 'Confirm',
+          message: 'Are you sure you want to delete the user?',
+          cancel: true,
+          persistent: true
+        }).onOk(() => {
+          axios.delete(`https://jsonplaceholder.typicode.com/users/${row.id}`)
           .then((response) => {
             if (response.status === 200) {
               rows.value = rows.value.filter(
-                (row) => row.id !== selectedRow.value.id
+                (user) => user.id !== row.id
               );
-              form.value.title = null;
-              selectedRow.value = {};
+              $q.notify({ position: 'top', color: 'positive', message: 'User data successfully deleted!', icon: 'check_circle_outline' })
             }
-            deleteBtnLoadingState.value = false;
           });
-      };
+        })
+      }
 
-
-      return {
-        rows,
-        columns,
-        form,
-        btnLoadingState,
-        addTodo,
-        selectedRow,
-        onRowClick,
-        updateTodo,
-        deleteBtnLoadingState,
-        deleteTodo,
-      };
-    },
-  };
+      return { rows, columns, handleUpdate, handleDelete };
+    }
+  }
 </script>

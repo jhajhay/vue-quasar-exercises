@@ -12,10 +12,8 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          User Management System
         </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
 
@@ -55,28 +53,16 @@ defineOptions({
 
 const linksList = [
   {
-    title: 'My Tasks',
-    caption: 'List of unfinished tasks',
-    icon: 'task',
-    route_name: 'my-tasks'
+    title: 'Home',
+    caption: 'List of users',
+    icon: 'home',
+    route_name: 'home'
   },
   {
-    title: 'Finished Tasks',
-    caption: 'List of finished tasks',
-    icon: 'check_circle_outline',
-    route_name: 'finished-tasks'
-  },
-  {
-    title: 'Deleted Tasks',
-    caption: 'List of deleted tasks',
-    icon: 'delete_outline',
-    route_name: 'deleted-tasks'
-  },
-  {
-    title: 'Axios Task',
-    caption: 'Activity for Axios',
-    icon: 'api',
-    route_name: 'axios'
+    title: 'Form',
+    caption: 'User form',
+    icon: 'feed',
+    route_name: 'form'
   },
 ]
 
